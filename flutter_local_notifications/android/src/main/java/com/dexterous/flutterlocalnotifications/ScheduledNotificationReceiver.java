@@ -4,6 +4,8 @@ import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.net.Uri;
 import android.telephony.TelephonyManager;
 
 import androidx.annotation.Keep;
@@ -33,6 +35,10 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
         // in a call, disable sound
         notification.sound = null;
       }
+      else if (notification.sound != null) {
+        playSound(notification, context, intent);
+        notification.sound = null;
+      }
       int notificationId = intent.getIntExtra("notification_id", 0);
       NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
       notificationManager.notify(notificationId, notification);
@@ -50,6 +56,11 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
         notificationDetails.channelId = "default";
         notificationDetails.playSound = false;
       }
+      else if (notificationDetails.playSound) {
+        playSound(notificationDetails, context, intent);
+        notificationDetails.channelId = "default";
+        notificationDetails.playSound = false;
+      }
       FlutterLocalNotificationsPlugin.showNotification(context, notificationDetails);
       if (notificationDetails.scheduledNotificationRepeatFrequency != null) {
         FlutterLocalNotificationsPlugin.zonedScheduleNextNotification(context, notificationDetails);
@@ -64,5 +75,35 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
             context, notificationDetails.id);
       }
     }
+  }
+
+  private void playSound(Notification notification, Context context, Intent intent) {
+    AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+    int volume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
+    audioManager.setStreamVolume(
+            AudioManager.STREAM_RING,
+            volume,
+            AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE
+    );
+
+    Intent startIntent = new Intent(context, RingtonePlayingService.class);
+    startIntent.putExtra("ringtone-uri", notification.sound);
+    context.startService(startIntent);
+  }
+
+  private void playSound(NotificationDetails notificationDetails, Context context, Intent intent) {
+    AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+    int volume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
+    audioManager.setStreamVolume(
+            AudioManager.STREAM_RING,
+            volume,
+            AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE
+    );
+
+    Uri uri = FlutterLocalNotificationsPlugin.retrieveSoundResourceUri(
+                    context, notificationDetails.sound, notificationDetails.soundSource);
+    Intent startIntent = new Intent(context, RingtonePlayingService.class);
+    startIntent.putExtra("ringtone-uri", uri);
+    context.startService(startIntent);
   }
 }
