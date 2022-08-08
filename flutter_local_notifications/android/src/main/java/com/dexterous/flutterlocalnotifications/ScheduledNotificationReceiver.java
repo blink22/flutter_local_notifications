@@ -6,9 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.telephony.TelephonyManager;
 
 import androidx.annotation.Keep;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.dexterous.flutterlocalnotifications.models.NotificationDetails;
@@ -21,6 +23,7 @@ import java.lang.reflect.Type;
 /** Created by michaelbui on 24/3/18. */
 @Keep
 public class ScheduledNotificationReceiver extends BroadcastReceiver {
+  String beforeFajrOptionKey = "beforeFajrOption";
 
   @Override
   public void onReceive(final Context context, Intent intent) {
@@ -88,6 +91,11 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
 
     Intent startIntent = new Intent(context, RingtonePlayingService.class);
     startIntent.putExtra("ringtone-uri", notification.sound);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      if (notification.getChannelId().equals(beforeFajrOptionKey)) {
+        startIntent.putExtra("mindVolume", true);
+      }
+    }
     context.startService(startIntent);
   }
 
@@ -104,6 +112,9 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
                     context, notificationDetails.sound, notificationDetails.soundSource);
     Intent startIntent = new Intent(context, RingtonePlayingService.class);
     startIntent.putExtra("ringtone-uri", uri);
+    if (notificationDetails.channelId.equals(beforeFajrOptionKey)) {
+      startIntent.putExtra("mindVolume", true);
+    }
     context.startService(startIntent);
   }
 }
