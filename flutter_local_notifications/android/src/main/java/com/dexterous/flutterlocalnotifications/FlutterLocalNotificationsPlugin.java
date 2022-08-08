@@ -109,6 +109,7 @@ public class FlutterLocalNotificationsPlugin
   private static final String PENDING_NOTIFICATION_REQUESTS_METHOD = "pendingNotificationRequests";
   private static final String SHOW_METHOD = "show";
   private static final String CANCEL_METHOD = "cancel";
+  private static final String STOP_ALARM_METHOD = "stopAlarm";
   private static final String CANCEL_ALL_METHOD = "cancelAll";
   private static final String SCHEDULE_METHOD = "schedule";
   private static final String ZONED_SCHEDULE_METHOD = "zonedSchedule";
@@ -982,7 +983,7 @@ public class FlutterLocalNotificationsPlugin
     }
   }
 
-  private static Uri retrieveSoundResourceUri(
+  public static Uri retrieveSoundResourceUri(
       Context context, String sound, SoundSource soundSource) {
     Uri uri = null;
     if (StringUtils.isNullOrEmpty(sound)) {
@@ -1290,6 +1291,9 @@ public class FlutterLocalNotificationsPlugin
       case STOP_FOREGROUND_SERVICE:
         stopForegroundService(result);
         break;
+      case STOP_ALARM_METHOD:
+        stopAlarm(result);
+        break;
       default:
         result.notImplemented();
         break;
@@ -1317,6 +1321,12 @@ public class FlutterLocalNotificationsPlugin
     Integer id = (Integer) arguments.get(CANCEL_ID);
     String tag = (String) arguments.get(CANCEL_TAG);
     cancelNotification(id, tag);
+    result.success(null);
+  }
+
+  private void stopAlarm(Result result) {
+    Intent stopIntent = new Intent(applicationContext, RingtonePlayingService.class);
+    applicationContext.stopService(stopIntent);
     result.success(null);
   }
 

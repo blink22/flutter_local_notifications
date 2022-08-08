@@ -532,6 +532,11 @@ class AndroidFlutterLocalNotificationsPlugin
         return await Future<void>.error('Method not defined');
     }
   }
+
+  @override
+  Future<void> stopAlarm() async {
+    return _channel.invokeMethod('stopAlarm');
+  }
 }
 
 /// iOS implementation of the local notifications plugin.
