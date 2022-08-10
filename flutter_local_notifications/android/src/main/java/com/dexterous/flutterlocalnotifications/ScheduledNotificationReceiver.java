@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.telephony.TelephonyManager;
 
 import androidx.annotation.Keep;
 import androidx.core.app.NotificationManagerCompat;
@@ -27,6 +28,11 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
       // This logic is needed for apps that used the plugin prior to 0.3.4
       Notification notification = intent.getParcelableExtra("notification");
       notification.when = System.currentTimeMillis();
+      String callStatus = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+      if (callStatus != null && callStatus.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+        // in a call, disable sound
+        notification.sound = null;
+      }
       int notificationId = intent.getIntExtra("notification_id", 0);
       NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
       notificationManager.notify(notificationId, notification);
@@ -38,6 +44,12 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
       Gson gson = FlutterLocalNotificationsPlugin.buildGson();
       Type type = new TypeToken<NotificationDetails>() {}.getType();
       NotificationDetails notificationDetails = gson.fromJson(notificationDetailsJson, type);
+      String callStatus = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+      if (callStatus != null && callStatus.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+        // in a call, disable sound
+        notificationDetails.channelId = "default";
+        notificationDetails.playSound = false;
+      }
       FlutterLocalNotificationsPlugin.showNotification(context, notificationDetails);
       if (notificationDetails.scheduledNotificationRepeatFrequency != null) {
         FlutterLocalNotificationsPlugin.zonedScheduleNextNotification(context, notificationDetails);
