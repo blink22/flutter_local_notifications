@@ -1262,7 +1262,11 @@ public class FlutterLocalNotificationsPlugin
   }
 
   @Override
-  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {}
+  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+    this.channel.setMethodCallHandler(null);
+    this.channel = null;
+    this.applicationContext = null;
+  }
 
   @Override
   public void onAttachedToActivity(ActivityPluginBinding binding) {
@@ -1659,7 +1663,7 @@ public class FlutterLocalNotificationsPlugin
 
   public void requestPermission(@NonNull PermissionRequestListener callback) {
     if (permissionRequestInProgress) {
-      callback.fail("Another permission request is already in progress");
+      callback.fail(PERMISSION_REQUEST_IN_PROGRESS_ERROR_MESSAGE);
       return;
     }
 

@@ -1,3 +1,18 @@
+# [12.0.2]
+
+* [Android] changed callback lookup for notification actions to take place after Flutter engine to ensure callback cache has been initialised to find the callback. This is a follow-up to changes done in 12.0.1 in trying to address issue [1721](https://github.com/MaikuB/flutter_local_notifications/issues/1721)
+* [Android] updated plugin to clean up resources after it is detached from Flutter engine. Thanks to PR from [Simon Ser](https://github.com/emersion)
+
+# [12.0.1+1]
+
+* Updated readme to indicate that the `timezone` package should be added as a direct dependency according to [this official lint rule](https://dart-lang.github.io/linter/lints/depend_on_referenced_packages.html)
+* Bumped dependency constraints on `flutter_local_notification_linux` that was meant to be done in 12.0.0
+
+# [12.0.1]
+
+* [Android][iOS] fixed issue [1721](https://github.com/MaikuB/flutter_local_notifications/issues/1721) where a crash occurs upon tapping on a notification action fbut the `onDidReceiveBackgroundNotificationResponse` optional callback hasn't been specified. 
+* [iOS] suppressed deprecation warnings where plugin was Apple's old notification APIs to support older iOS devices
+
 # [12.0.0]
 
 * Bumped `dbus` dependency via `flutter_local_notifications_linux`
