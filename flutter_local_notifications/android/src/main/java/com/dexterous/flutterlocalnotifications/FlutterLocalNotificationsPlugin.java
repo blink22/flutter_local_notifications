@@ -1376,7 +1376,7 @@ public class FlutterLocalNotificationsPlugin
         break;
     }
   }
-  private  void deletePreviousNotifications(ArrayList<NotificationDetails> scheduledNotifications){
+  private void deletePreviousNotifications(ArrayList<NotificationDetails> scheduledNotifications){
     for (Iterator<NotificationDetails> it = scheduledNotifications.iterator(); it.hasNext(); ) {
       NotificationDetails notificationDetails = it.next();
       ZoneId zoneId = ZoneId.of(notificationDetails.timeZoneName);
