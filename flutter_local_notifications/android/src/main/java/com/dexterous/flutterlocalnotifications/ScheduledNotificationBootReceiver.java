@@ -17,8 +17,7 @@ public class ScheduledNotificationBootReceiver extends BroadcastReceiver {
               || action.equals(Intent.ACTION_MY_PACKAGE_REPLACED)
               || action.equals("android.intent.action.QUICKBOOT_POWERON")
               || action.equals("com.htc.intent.action.QUICKBOOT_POWERON")) {
-        FlutterLocalNotificationsPlugin plugin=new FlutterLocalNotificationsPlugin();
-        plugin.rescheduleNotifications(context);
+        FlutterLocalNotificationsPlugin.rescheduleNotifications(context);
       }
     }
   }
