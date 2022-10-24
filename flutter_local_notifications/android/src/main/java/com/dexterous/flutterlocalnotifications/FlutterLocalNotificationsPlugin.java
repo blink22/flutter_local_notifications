@@ -200,9 +200,9 @@ public class FlutterLocalNotificationsPlugin
     plugin.onAttachedToEngine(registrar.context(), registrar.messenger());
   }
 
-    public void rescheduleNotifications(Context context) {
+  static void rescheduleNotifications(Context context) {
     ArrayList<NotificationDetails> scheduledNotifications = loadScheduledNotifications(context);
-    deletePreviousNotifications(scheduledNotifications);
+    deletePreviousNotifications(scheduledNotifications,context);
     for (NotificationDetails scheduledNotification : scheduledNotifications) {
       if (scheduledNotification.repeatInterval == null) {
         if (scheduledNotification.timeZoneName == null) {
@@ -1376,7 +1376,7 @@ public class FlutterLocalNotificationsPlugin
         break;
     }
   }
-  private void deletePreviousNotifications(ArrayList<NotificationDetails> scheduledNotifications){
+  static void deletePreviousNotifications(ArrayList<NotificationDetails> scheduledNotifications, Context context){
     for (Iterator<NotificationDetails> it = scheduledNotifications.iterator(); it.hasNext(); ) {
       NotificationDetails notificationDetails = it.next();
       ZoneId zoneId = ZoneId.of(notificationDetails.timeZoneName);
@@ -1385,15 +1385,14 @@ public class FlutterLocalNotificationsPlugin
       ZonedDateTime now = ZonedDateTime.now(zoneId).minusMinutes(1);
       if (scheduledDateTime.isBefore(now)) {
         it.remove();
-        cancelNotification(notificationDetails.id,notificationDetails.tag);
+        removeNotificationFromCache(
+                context, notificationDetails.id);
       }
     }
   }
   private void pendingNotificationRequests(Result result) {
     ArrayList<NotificationDetails> scheduledNotifications =
         loadScheduledNotifications(applicationContext);
-    deletePreviousNotifications(scheduledNotifications);
-
     List<Map<String, Object>> pendingNotifications = new ArrayList<>();
     for (NotificationDetails scheduledNotification : scheduledNotifications) {
       HashMap<String, Object> pendingNotification = new HashMap<>();
