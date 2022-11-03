@@ -89,6 +89,7 @@ import io.flutter.embedding.engine.loader.FlutterLoader;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
+import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -189,6 +190,15 @@ public class FlutterLocalNotificationsPlugin
   static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1;
   private PermissionRequestListener callback;
   private boolean permissionRequestInProgress = false;
+
+  @SuppressWarnings("deprecation")
+  public static void registerWith(io.flutter.plugin.common.PluginRegistry.Registrar registrar) {
+    FlutterLocalNotificationsPlugin plugin = new FlutterLocalNotificationsPlugin();
+    plugin.setActivity(registrar.activity());
+    registrar.addNewIntentListener(plugin);
+    registrar.addRequestPermissionsResultListener(plugin);
+    plugin.onAttachedToEngine(registrar.context(), registrar.messenger());
+  }
 
   static void rescheduleNotifications(Context context) {
     ArrayList<NotificationDetails> scheduledNotifications = loadScheduledNotifications(context);
@@ -1245,11 +1255,15 @@ public class FlutterLocalNotificationsPlugin
     this.mainActivity = flutterActivity;
   }
 
+  private void onAttachedToEngine(Context context, BinaryMessenger binaryMessenger) {
+    this.applicationContext = context;
+    this.channel = new MethodChannel(binaryMessenger, METHOD_CHANNEL);
+    this.channel.setMethodCallHandler(this);
+  }
+
   @Override
   public void onAttachedToEngine(FlutterPluginBinding binding) {
-    this.applicationContext = binding.getApplicationContext();
-    this.channel = new MethodChannel(binding.getBinaryMessenger(), METHOD_CHANNEL);
-    this.channel.setMethodCallHandler(this);
+    onAttachedToEngine(binding.getApplicationContext(), binding.getBinaryMessenger());
   }
 
   @Override
