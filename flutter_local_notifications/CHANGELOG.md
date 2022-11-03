@@ -1,8 +1,3 @@
-# [12.0.3]
-
-* [Android] removed reference to Android V1 embedding. Thanks to PR from [Simon Ser](https://github.com/emersion)
-* Updated code snippet in readme around requesting notification permissions on Android. Thanks to PR from [Leo](https://github.com/rignaneseleo)
-
 # [12.0.2]
 
 * [Android] changed callback lookup for notification actions to take place after Flutter engine to ensure callback cache has been initialised to find the callback. This is a follow-up to changes done in 12.0.1 in trying to address issue [1721](https://github.com/MaikuB/flutter_local_notifications/issues/1721)
