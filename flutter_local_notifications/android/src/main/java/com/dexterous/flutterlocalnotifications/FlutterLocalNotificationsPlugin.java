@@ -511,12 +511,14 @@ public class FlutterLocalNotificationsPlugin
 
     AlarmManager alarmManager = getAlarmManager(context);
     if (BooleanUtils.getValue(notificationDetails.allowWhileIdle)) {
+      System.out.println("I/Blink22-flutterlocalnotifications: Scheduling a notification with exact and allowWhileIdle");
       AlarmManagerCompat.setExactAndAllowWhileIdle(
           alarmManager,
           AlarmManager.RTC_WAKEUP,
           notificationDetails.millisecondsSinceEpoch,
           pendingIntent);
     } else {
+      System.out.println("I/Blink22-flutterlocalnotifications: Scheduling a notification with exact");
       AlarmManagerCompat.setExact(
           alarmManager,
           AlarmManager.RTC_WAKEUP,
