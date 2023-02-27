@@ -209,7 +209,19 @@ buildscript {
     }
 ```
 
-There have been reports that enabling desugaring may result in a Flutter apps crashing on foldable devices. This would be an issue with Flutter itself, not the plugin. Please see [this link](https://github.com/flutter/flutter/issues/110658) for details to try out the solutions there. The plugin also requires that the `compileSdkVersion` in their application's Gradle file  is set to 33
+There have been reports that enabling desugaring may result in a Flutter apps crashing on Android 12L and above. This would be an issue with Flutter itself, not the plugin. One possible fix is adding the [WindowManager library](https://developer.android.com/jetpack/androidx/releases/window) as a dependency:
+
+```gradle
+dependencies {
+    implementation 'androidx.window:window:1.0.0'
+    implementation 'androidx.window:window-java:1.0.0'
+    ...
+}
+```
+
+More information and other proposed solutions can be found in [Flutter issue #110658](https://github.com/flutter/flutter/issues/110658).
+
+The plugin also requires that the `compileSdkVersion` in your application's Gradle file is set to 33:
 
 ```gradle
 android {
@@ -257,7 +269,7 @@ Note that when a full-screen intent notification actually occurs (as opposed to 
 
 Before creating the release build of your app (which is the default setting when building an APK or app bundle) you will need to customise your ProGuard configuration file as per this [link](https://developer.android.com/studio/build/shrink-code#keep-code). Rules specific to the GSON dependency being used by the plugin will need to be added. These rules can be found [here](https://github.com/google/gson/blob/master/examples/android-proguard-example/proguard.cfg). Whilst the example app has a Proguard rules (`proguard-rules.pro`) [here](https://github.com/MaikuB/flutter_local_notifications/blob/master/flutter_local_notifications/example/android/app/proguard-rules.pro), it is recommended that developers refer to the rules on the GSON repository in case they get updated over time.
 
-⚠️ Ensure that you have configured the resources that should be kept so that resources like your notification icons aren't discarded by the R8 compiler by following the instructions [here](https://developer.android.com/studio/build/shrink-code#keep-resources). If you fail to do this, notifications might be broken. In the worst case they will never show, instead silently failing when the system looks for a resource that has been removed. If they do still show, you might not see the icon you specified. The configuration used by the example app can be found [here](https://github.com/MaikuB/flutter_local_notifications/blob/master/flutter_local_notifications/example/android/app/src/main/res/raw/keep.xml) where it is specifying that all drawable resources should be kept, as well as the file used to play a custom notification sound (sound file is located [here](https://github.com/MaikuB/flutter_local_notifications/blob/master/flutter_local_notifications/example/android/app/src/main/res/raw/slow_spring_board.mp3)).
+⚠️ Ensure that you have configured the resources that should be kept so that resources like your notification icons aren't discarded by the R8 compiler by following the instructions [here](https://developer.android.com/studio/build/shrink-code#keep-resources). If you have chosen to use `@mipmap/ic_launcher` as the notification icon (against the official Android guidance), be sure to include this in the `keep.xml` file. If you fail to do this, notifications might be broken. In the worst case they will never show, instead silently failing when the system looks for a resource that has been removed. If they do still show, you might not see the icon you specified. The configuration used by the example app can be found [here](https://github.com/MaikuB/flutter_local_notifications/blob/master/flutter_local_notifications/example/android/app/src/main/res/raw/keep.xml) where it is specifying that all drawable resources should be kept, as well as the file used to play a custom notification sound (sound file is located [here](https://github.com/MaikuB/flutter_local_notifications/blob/master/flutter_local_notifications/example/android/app/src/main/res/raw/slow_spring_board.mp3)).
 
 ## 🔧 iOS setup
 
@@ -358,6 +370,10 @@ Adjust `AppDelegate.m` and set the plugin registrant callback:
 
 If you're using Objective-C, add this function anywhere in AppDelegate.m:
 ``` objc
+// This is required for calling FlutterLocalNotificationsPlugin.setPluginRegistrantCallback method.
+#import <FlutterLocalNotificationsPlugin.h>
+...
+...
 void registerPlugins(NSObject<FlutterPluginRegistry>* registry) {
     [GeneratedPluginRegistrant registerWithRegistry:registry];
 }
@@ -378,6 +394,12 @@ For Swift, open the `AppDelegate.swift` and update the `didFinishLaunchingWithOp
 where the commented code indicates the code to add in and why
 
 ```swift
+import UIKit
+import Flutter
+// This is required for calling FlutterLocalNotificationsPlugin.setPluginRegistrantCallback method.
+import flutter_local_notifications
+
+@UIApplicationMain
 override func application(
   _ application: UIApplication,
   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -401,8 +423,8 @@ final DarwinInitializationSettings initializationSettingsDarwin = DarwinInitiali
     const DarwinNotificationCategory(
         'demoCategory',
         <DarwinNotificationAction>[
-            IOSNotificationAction('id_1', 'Action 1'),
-            IOSNotificationAction(
+            DarwinNotificationAction('id_1', 'Action 1'),
+            DarwinNotificationAction(
             'id_2',
             'Action 2',
             options: <DarwinNotificationActionOption>{
@@ -651,7 +673,7 @@ Once the time zone database has been initialised, developers may optionally want
 tz.setLocalLocation(tz.getLocation(timeZoneName));
 ```
 
-The `timezone` package doesn't provide a way to obtain the current time zone on the device so developers will need to use [platform channels](https://flutter.dev/docs/development/platform-integration/platform-channels) or use other packages that may be able to provide the information. The example app uses the [`flutter_native_timezone`](https://pub.dev/packages/flutter_native_timezone) plugin.
+The `timezone` package doesn't provide a way to obtain the current time zone on the device so developers will need to use [platform channels](https://flutter.dev/docs/development/platform-integration/platform-channels) or use other packages that may be able to provide the information. [`flutter_timezone`](https://pub.dev/packages/flutter_timezone) is the current version of the original `flutter_native_timezone` plugin used in the example app.
 
 Assuming the local location has been set, the `zonedSchedule` method can then be called in a manner similar to the following code
 
@@ -713,11 +735,11 @@ final List<ActiveNotification> activeNotifications =
 
 #### iOS
 
-For iOS, you can specify `threadIdentifier` in `IOSNotificationDetails`. Notifications with the same `threadIdentifier` will get grouped together automatically.
+For iOS, you can specify `threadIdentifier` in `DarwinNotificationDetails`. Notifications with the same `threadIdentifier` will get grouped together automatically.
 
 ```dart
-const IOSNotificationDetails iOSPlatformChannelSpecifics =
-    IOSNotificationDetails(threadIdentifier: 'thread_id');
+const DarwinNotificationDetails iOSPlatformChannelSpecifics =
+    DarwinNotificationDetails(threadIdentifier: 'thread_id');
 ```
 
 #### Android
@@ -795,7 +817,7 @@ await flutterLocalNotificationsPlugin.cancelAll();
 ### Getting details on if the app was launched via a notification created by this plugin
 
 ```dart
-final NotificationAppLaunchDetails notificationAppLaunchDetails =
+final NotificationAppLaunchDetails? notificationAppLaunchDetails =
     await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
 ```
 
